@@ -25,6 +25,9 @@ INSTALLED_APPS = [
     "users",
     "roles",
     "bitacora",
+    "categoria",
+    "marca",
+    "producto",
 
     # LIBRERÍAS
     "rest_framework",

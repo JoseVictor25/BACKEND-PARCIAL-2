@@ -16,12 +16,18 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/users/', include('users.urls')),
-    path('api/bitacora/', include('bitacora.urls')),
-    path('api/', include('roles.urls')),
+    path("admin/", admin.site.urls),
+    path("api/users/", include("users.urls")),
+    path("api/bitacora/", include("bitacora.urls")),
+    path("api/", include("roles.urls")),
+    path("api/", include("marca.urls")),
+    path("api/", include("categoria.urls")),
+    path('api/', include('producto.urls')),
+
 
 
     # Swagger
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='swagger-ui'),
+    path(
+        "swagger/", schema_view.with_ui("swagger", cache_timeout=0), name="swagger-ui"
+    ),
 ]
