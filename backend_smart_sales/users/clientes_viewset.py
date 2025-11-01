@@ -1,5 +1,5 @@
 from rest_framework import viewsets
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from users.models import CustomUser
 from users.serializers import UserSerializer
 from bitacora.models import Bitacora
@@ -8,7 +8,7 @@ from roles.models import Rol
 
 class ClienteViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return CustomUser.objects.filter(rol__nombre__iexact="Cliente")

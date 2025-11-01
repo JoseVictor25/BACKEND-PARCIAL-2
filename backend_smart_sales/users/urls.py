@@ -7,13 +7,14 @@ from .views import (
 from .viewsets import UsuarioViewSet
 from .clientes_viewset import ClienteViewSet
 
-# 🔹 1. Crear router y registrar el ViewSet
+# 🔹 1. Crear router y registrar ViewSets con prefijos distintos
 router = DefaultRouter()
-router.register(r"", UsuarioViewSet, basename="usuarios")
-router.register(r"", ClienteViewSet, basename="clientes")
+router.register(r"usuarios", UsuarioViewSet, basename="usuarios")
+router.register(r"clientes", ClienteViewSet, basename="clientes")
 
 # 🔹 2. Definir urlpatterns combinando router + vistas personalizadas
 urlpatterns = [
+    # Endpoints de autenticación y roles
     path("login/", LoginView.as_view(), name="login"),
     path("logout/", LogoutView.as_view(), name="logout"),
     path("register/", RegisterView.as_view(), name="register"),
@@ -21,5 +22,6 @@ urlpatterns = [
     path("password-reset-confirm/", PasswordResetConfirmView.as_view(), name="password-reset-confirm"),
     path("asignar-rol/", AsignarRolView.as_view(), name="asignar-rol"),
 
+    # Endpoints de usuarios y clientes
     path("", include(router.urls)),
 ]

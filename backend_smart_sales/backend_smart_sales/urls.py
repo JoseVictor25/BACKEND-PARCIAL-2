@@ -23,8 +23,7 @@ urlpatterns = [
     path("api/", include("marca.urls")),
     path("api/categorias/", include("categoria.urls")),
     path("api/", include("producto.urls")),
-    path("api/usuarios/", include("users.urls")),
-    path("api/clientes/", include("users.urls")),
+    path("api/", include("users.urls")),
 
     # Swagger
     path(
