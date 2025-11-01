@@ -21,10 +21,10 @@ urlpatterns = [
     path("api/bitacora/", include("bitacora.urls")),
     path("api/", include("roles.urls")),
     path("api/", include("marca.urls")),
-    path("api/", include("categoria.urls")),
-    path('api/', include('producto.urls')),
-
-
+    path("api/categorias/", include("categoria.urls")),
+    path("api/", include("producto.urls")),
+    path("api/usuarios/", include("users.urls")),
+    path("api/clientes/", include("users.urls")),
 
     # Swagger
     path(

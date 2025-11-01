@@ -1,6 +1,18 @@
-from django.urls import path
-from .views import LoginView, LogoutView, RegisterView, PasswordResetRequestView, PasswordResetConfirmView, AsignarRolView
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import (
+    LoginView, LogoutView, RegisterView,
+    PasswordResetRequestView, PasswordResetConfirmView, AsignarRolView
+)
+from .viewsets import UsuarioViewSet
+from .clientes_viewset import ClienteViewSet
 
+# 🔹 1. Crear router y registrar el ViewSet
+router = DefaultRouter()
+router.register(r"", UsuarioViewSet, basename="usuarios")
+router.register(r"", ClienteViewSet, basename="clientes")
+
+# 🔹 2. Definir urlpatterns combinando router + vistas personalizadas
 urlpatterns = [
     path("login/", LoginView.as_view(), name="login"),
     path("logout/", LogoutView.as_view(), name="logout"),
@@ -8,4 +20,6 @@ urlpatterns = [
     path("password-reset-request/", PasswordResetRequestView.as_view(), name="password-reset-request"),
     path("password-reset-confirm/", PasswordResetConfirmView.as_view(), name="password-reset-confirm"),
     path("asignar-rol/", AsignarRolView.as_view(), name="asignar-rol"),
+
+    path("", include(router.urls)),
 ]
