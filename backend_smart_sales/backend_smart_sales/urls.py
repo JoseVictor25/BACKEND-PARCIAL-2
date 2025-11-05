@@ -24,6 +24,8 @@ urlpatterns = [
     path("api/categorias/", include("categoria.urls")),
     path("api/", include("producto.urls")),
     path("api/", include("users.urls")),
+    path('api/', include('carrito.urls')),
+    path('api/', include('venta.urls')),
 
     # Swagger
     path(

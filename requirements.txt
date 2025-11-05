@@ -28,3 +28,4 @@ joblib==1.4.2
 reportlab==4.2.5
 openpyxl==3.1.5
 weasyprint==63.1
+stripe

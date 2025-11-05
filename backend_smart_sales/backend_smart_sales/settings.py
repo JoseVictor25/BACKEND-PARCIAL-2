@@ -9,6 +9,16 @@ SECRET_KEY = config("SECRET_KEY")
 DEBUG = config("DEBUG", default=True, cast=bool)
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*").split(",")
 
+
+
+# ==========================================
+# STRIPE
+# ==========================================
+STRIPE_PUBLIC_KEY = config("STRIPE_PUBLIC_KEY", default="")
+STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY", default="")
+STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET", default="")
+
+
 # ==========================================
 # APLICACIONES
 # ==========================================
@@ -28,12 +38,20 @@ INSTALLED_APPS = [
     "categoria",
     "marca",
     "producto",
-
+     "carrito",
+     "venta",
+     
     # LIBRERÍAS
     "rest_framework",
     "rest_framework_simplejwt",
     "corsheaders",
     "drf_yasg",
+]
+
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",   # CRA
+    "http://localhost:5173",   # Vite
 ]
 
 MIDDLEWARE = [
@@ -91,7 +109,22 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ]
 }
+
+
+
+
+
+
+
+
+
+
 
 from datetime import timedelta
 SIMPLE_JWT = {
