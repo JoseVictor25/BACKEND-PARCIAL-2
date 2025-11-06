@@ -72,7 +72,7 @@ def registrar_venta(request):
         cliente = usuario
 
         # Crear la venta
-        venta = Venta.objects.create(usuario=usuario, total=total, estado="pendiente")
+        venta = Venta.objects.create(usuario=usuario, total=total, estado="pagado")
 
         # Crear los detalles
         for item in productos:
