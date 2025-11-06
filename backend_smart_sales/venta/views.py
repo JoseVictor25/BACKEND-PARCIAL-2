@@ -1,181 +1,117 @@
-from rest_framework import viewsets, status
-from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 from django.db import transaction
 from django.conf import settings
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from django.http import HttpResponse
 import stripe
-import os
 
-from bitacora.models import Bitacora
-from users.views import get_client_ip
 from .models import Venta, DetalleVenta
 from .serializers import VentaSerializer
-from carrito.models import Carrito
+from producto.models import Producto
+from users.models import CustomUser
+from users.views import get_client_ip
+from bitacora.models import Bitacora
 
 # Configurar Stripe
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
-# 🧾 CREAR VENTA A PARTIR DEL CARRITO
-class VentaViewSet(viewsets.ModelViewSet):
-    queryset = Venta.objects.all().order_by("-fecha")
-    serializer_class = VentaSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        # Mostrar solo las ventas del usuario actual
-        return Venta.objects.filter(usuario=self.request.user)
-
-    @transaction.atomic
-    def create(self, request, *args, **kwargs):
-        try:
-            carrito = Carrito.objects.filter(usuario=request.user, activo=True).first()
-            if not carrito or carrito.detalles.count() == 0:
-                return Response(
-                    {"error": "El carrito está vacío o no existe."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            total = sum(item.subtotal() for item in carrito.detalles.all())
-            venta = Venta.objects.create(usuario=request.user, total=total)
-
-            for item in carrito.detalles.all():
-                # Validar stock
-                if item.producto.stock < item.cantidad:
-                    raise ValueError(f"Stock insuficiente para {item.producto.nombre}")
-
-                # Crear detalle de venta
-                DetalleVenta.objects.create(
-                    venta=venta,
-                    producto=item.producto,
-                    cantidad=item.cantidad,
-                    precio_unitario=item.producto.precio,
-                    subtotal=item.subtotal(),
-                )
-
-                # Descontar stock
-                item.producto.stock -= item.cantidad
-                item.producto.save()
-
-            # Desactivar carrito
-            carrito.activo = False
-            carrito.save()
-
-            # Registrar en Bitácora
-            Bitacora.objects.create(
-                usuario=request.user,
-                accion=f"Generó venta #{venta.id} por un total de {venta.total} Bs",
-                ip=get_client_ip(request),
-                estado=True,
-            )
-
-            return Response(VentaSerializer(venta).data, status=status.HTTP_201_CREATED)
-
-        except Exception as e:
-            return Response(
-                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+# ✅ PROBAR CLAVE DE STRIPE
+@api_view(['GET'])
+def probar_stripe_key(request):
+    return Response({"stripe_key_ok": bool(stripe.api_key)})
 
 
-# 💳 PROCESAR PAGO CON STRIPE
-class ProcesarPagoView(APIView):
+# 💳 CREAR INTENTO DE PAGO CON STRIPE
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def crear_pago(request):
     """
-    Crea un PaymentIntent de Stripe para la venta especificada.
+    Crea un PaymentIntent en Stripe y devuelve el client_secret
+    que el frontend usará para confirmar el pago.
     """
+    try:
+        monto = request.data.get('monto')
+        if not monto:
+            return Response({'error': 'El monto es requerido.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    permission_classes = [IsAuthenticated]
+        intent = stripe.PaymentIntent.create(
+            amount=int(monto*100),  # en centavos (5000 = $50.00)
+            currency='usd',
+            payment_method_types=['card']
+        )
 
-    def post(self, request):
-        try:
-            venta_id = request.data.get("venta_id")
-            if not venta_id:
-                return Response(
-                    {"error": "Debe proporcionar el ID de la venta."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+        return Response({'client_secret': intent.client_secret}, status=status.HTTP_200_OK)
 
-            venta = Venta.objects.get(id=venta_id, usuario=request.user)
-
-            if venta.estado == "pagado":
-                return Response(
-                    {"error": "Esta venta ya fue pagada."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            # Crear el intento de pago en Stripe (monto en centavos)
-            intent = stripe.PaymentIntent.create(
-                amount=int(round(float(venta.total) * 100)),
-                currency="usd",
-                metadata={"venta_id": venta.id, "usuario": request.user.username},
-                automatic_payment_methods={"enabled": True},
-            )
-
-            # Registrar intento de pago
-            Bitacora.objects.create(
-                usuario=request.user,
-                accion=f"Intentó pagar la venta #{venta.id} ({venta.total} Bs)",
-                ip=get_client_ip(request),
-                estado=True,
-            )
-
-            return Response(
-                {
-                    "clientSecret": intent.client_secret,
-                    "publicKey": settings.STRIPE_PUBLIC_KEY,
-                    "venta": VentaSerializer(venta).data,
-                },
-                status=status.HTTP_200_OK,
-            )
-
-        except Venta.DoesNotExist:
-            return Response(
-                {"error": "Venta no encontrada."}, status=status.HTTP_404_NOT_FOUND
-            )
-        except Exception as e:
-            return Response(
-                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-# ⚙️ WEBHOOK DE CONFIRMACIÓN DE STRIPE
-@method_decorator(csrf_exempt, name="dispatch")
-class StripeWebhookView(APIView):
+# 🧾 REGISTRAR VENTA (después de pago exitoso)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@transaction.atomic
+def registrar_venta(request):
     """
-    Recibe confirmaciones de Stripe (pago exitoso, fallido, etc.)
+    Registra una venta y sus detalles, actualizando inventario.
+    Se llama después de confirmar el pago exitoso.
     """
+    print("📦 Datos recibidos:", request.data)
 
-    def post(self, request):
-        payload = request.body
-        sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
-        endpoint_secret = os.getenv("STRIPE_WEBHOOK_SECRET", "")
+    try:
+        usuario = request.user
+        data = request.data
+        productos = data.get('productos', [])
+        total = data.get('total')
 
-        try:
-            event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
-        except ValueError:
-            # Cuerpo inválido
-            return HttpResponse(status=400)
-        except stripe.error.SignatureVerificationError:
-            # Firma no válida
-            return HttpResponse(status=400)
+        if not productos or not total:
+            return Response({'error': 'Debe enviar productos y total.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # ✅ Cuando el pago es exitoso
-        if event["type"] == "payment_intent.succeeded":
-            payment_intent = event["data"]["object"]
-            venta_id = payment_intent["metadata"].get("venta_id")
-            if venta_id:
-                venta = Venta.objects.filter(id=venta_id).first()
-                if venta:
-                    venta.estado = "pagado"
-                    venta.save()
-                    Bitacora.objects.create(
-                        usuario=venta.usuario,
-                        accion=f"Pago completado para venta #{venta.id}",
-                        ip="Webhook Stripe",
-                        estado=True,
-                    )
+        # Buscar el cliente relacionado al usuario
+        cliente = usuario
 
-        return HttpResponse(status=200)
+        # Crear la venta
+        venta = Venta.objects.create(usuario=usuario, total=total, estado="pendiente")
+
+        # Crear los detalles
+        for item in productos:
+            producto = Producto.objects.get(id=item['producto_id'])
+            cantidad = int(item['cantidad'])
+
+            if producto.stock < cantidad:
+                raise ValueError(f"Stock insuficiente para {producto.nombre}")
+
+            subtotal = producto.precio * cantidad
+
+            DetalleVenta.objects.create(
+                venta=venta,
+                producto=producto,
+                cantidad=cantidad,
+                precio_unitario=producto.precio,
+                subtotal=subtotal,
+            )
+
+            # Actualizar inventario
+            producto.stock -= cantidad
+            producto.save()
+
+        # Registrar en bitácora
+        Bitacora.objects.create(
+            usuario=usuario,
+            accion=f"Registró venta #{venta.id} por un total de {venta.total} USD",
+            ip=get_client_ip(request),
+            estado=True,
+        )
+
+        return Response({
+            'mensaje': '✅ Venta registrada con éxito.',
+            'venta': VentaSerializer(venta).data
+        }, status=status.HTTP_201_CREATED)
+
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'Cliente no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+    except Producto.DoesNotExist:
+        return Response({'error': 'Producto no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

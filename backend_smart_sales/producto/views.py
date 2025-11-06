@@ -1,5 +1,5 @@
 from rest_framework import viewsets,filters
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny
 from bitacora.models import Bitacora
 from users.views import get_client_ip
 from .models import Producto
@@ -10,7 +10,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 class ProductoViewSet(viewsets.ModelViewSet):
     queryset = Producto.objects.all()
     serializer_class = ProductoSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
 
 
