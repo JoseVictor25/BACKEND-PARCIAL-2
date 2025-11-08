@@ -3,13 +3,19 @@ from datetime import timedelta
 from decouple import config
 import os
 
+# ==========================================
+# BASE DIR
+# ==========================================
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ==========================================
+# SECRETOS Y CONFIGURACIÓN GENERAL
+# ==========================================
 SECRET_KEY = config("SECRET_KEY")
 DEBUG = config("DEBUG", default=True, cast=bool)
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*").split(",")
 
-
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="smartsales365@gmail.com")
 
 # ==========================================
 # STRIPE
@@ -19,41 +25,42 @@ STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY", default="")
 STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET", default="")
 
 
+
 # ==========================================
 # APLICACIONES
 # ==========================================
 INSTALLED_APPS = [
+    # Django
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "rest_framework_simplejwt.token_blacklist",
 
-    # APPS PROPIAS
+    # Terceros
+    "rest_framework",
+    "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
+    "corsheaders",
+    "drf_yasg",
+    "cloudinary",
+    "cloudinary_storage",
+
+    # Apps propias
     "users",
     "roles",
     "bitacora",
     "categoria",
     "marca",
     "producto",
-     "carrito",
-     "venta",
-     
-    # LIBRERÍAS
-    "rest_framework",
-    "rest_framework_simplejwt",
-    "corsheaders",
-    "drf_yasg",
+    "carrito",
+    "venta",
 ]
 
-
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",   # CRA
-    "http://localhost:5173",   # Vite
-]
-
+# ==========================================
+# MIDDLEWARE
+# ==========================================
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -67,6 +74,9 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "backend_smart_sales.urls"
 
+# ==========================================
+# TEMPLATES
+# ==========================================
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -100,7 +110,7 @@ DATABASES = {
 }
 
 # ==========================================
-# AUTENTICACIÓN Y JWT
+# REST FRAMEWORK & JWT
 # ==========================================
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -109,35 +119,24 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
-    'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend',
-        'rest_framework.filters.SearchFilter',
-        'rest_framework.filters.OrderingFilter',
-    ]
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.SearchFilter",
+        "rest_framework.filters.OrderingFilter",
+    ],
 }
 
-
-
-
-
-
-
-
-
-
-
-from datetime import timedelta
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=config("ACCESS_TOKEN_LIFETIME_MINUTES", default=60, cast=int)),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=config("REFRESH_TOKEN_LIFETIME_DAYS", default=1, cast=int)),
+    "ACCESS_TOKEN_LIFETIME": timedelta(
+        minutes=config("ACCESS_TOKEN_LIFETIME_MINUTES", default=60, cast=int)
+    ),
+    "REFRESH_TOKEN_LIFETIME": timedelta(
+        days=config("REFRESH_TOKEN_LIFETIME_DAYS", default=1, cast=int)
+    ),
     "AUTH_HEADER_TYPES": ("Bearer",),
     "BLACKLIST_AFTER_ROTATION": True,
     "ROTATE_REFRESH_TOKENS": True,
 }
-
-DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="smartsales365@gmail.com")
-
-
 
 # ==========================================
 # CORS
@@ -160,4 +159,15 @@ USE_I18N = True
 USE_TZ = True
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# ==========================================
+# USUARIO PERSONALIZADO
+# ==========================================
 AUTH_USER_MODEL = "users.CustomUser"
+
+
+
+
+
+
+
