@@ -8,7 +8,11 @@ class Bitacora(models.Model):
         on_delete=models.CASCADE,
         related_name='bitacoras'
     )
+<<<<<<< HEAD
     accion = models.CharField(max_length=100)
+=======
+    accion = models.CharField(max_length=255)
+>>>>>>> main
     ip = models.GenericIPAddressField(null=True, blank=True)
     fecha_hora = models.DateTimeField(default=timezone.now)
     estado = models.BooleanField(default=True)

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
+<<<<<<< HEAD
 from .models import CustomUser, PasswordResetToken
 from roles.models import Rol
 from roles.serializers import RolSerializer
@@ -36,6 +37,15 @@ class UserSerializer(serializers.ModelSerializer):
             user.set_password(password)  # ✅ encripta la contraseña
         user.save()
         return user
+=======
+from .models import CustomUser
+from .models import PasswordResetToken
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ["id", "username", "email", "first_name", "last_name", "telefono", "direccion", "rol"]
+>>>>>>> main
 
 
 class LoginSerializer(serializers.Serializer):
@@ -55,6 +65,7 @@ class LoginSerializer(serializers.Serializer):
         data["user"] = user
         return data
 
+<<<<<<< HEAD
 
 class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -63,3 +74,11 @@ class PasswordResetRequestSerializer(serializers.Serializer):
 class PasswordResetConfirmSerializer(serializers.Serializer):
     token = serializers.UUIDField()
     new_password = serializers.CharField(write_only=True, min_length=6)
+=======
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    token = serializers.UUIDField()
+    new_password = serializers.CharField(write_only=True, min_length=6)
+>>>>>>> main

@@ -19,7 +19,10 @@ class CustomUser(AbstractUser):
         related_name="usuarios"
     )
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
     def __str__(self):
         return f"{self.username} ({self.rol.nombre if self.rol else 'Sin rol'})"
 

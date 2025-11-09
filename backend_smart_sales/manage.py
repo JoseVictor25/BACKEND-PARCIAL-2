@@ -1,7 +1,14 @@
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
+<<<<<<< HEAD
 import os
 import sys
+=======
+import sys
+import os
+sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.dirname(__file__))
+>>>>>>> main
 
 
 def main():

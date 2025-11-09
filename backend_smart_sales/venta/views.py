@@ -1,7 +1,11 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+<<<<<<< HEAD
 from rest_framework import status
+=======
+from rest_framework import viewsets, status
+>>>>>>> main
 from django.db import transaction
 from django.conf import settings
 import stripe
@@ -13,6 +17,15 @@ from users.models import CustomUser
 from users.views import get_client_ip
 from bitacora.models import Bitacora
 
+<<<<<<< HEAD
+=======
+from rest_framework.decorators import action
+from datetime import timedelta
+from django.utils import timezone
+
+
+
+>>>>>>> main
 # Configurar Stripe
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -116,6 +129,7 @@ def registrar_venta(request):
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+<<<<<<< HEAD
 
 
 
@@ -222,3 +236,7 @@ def editar_venta(request, venta_id):
     except Exception as e:
         print("💣 Error inesperado al editar venta:", str(e))
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+=======
+############################## 
+# VIEWSET HISTORIAL DE VENTAS #
+>>>>>>> main
