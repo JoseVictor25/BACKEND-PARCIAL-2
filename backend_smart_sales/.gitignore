@@ -1,0 +1,45 @@
+# ===== Django / Python =====
+__pycache__/
+*.py[cod]
+*.sqlite3
+db.sqlite3
+*.log
+
+# ===== Entornos virtuales =====
+venv/
+.env/
+*.env
+
+# ===== Archivos temporales =====
+*.bak
+*.tmp
+*.swp
+*.DS_Store
+Thumbs.db
+
+# ===== Migraciones innecesarias =====
+*/migrations/*
+!*/migrations/__init__.py
+
+# ===== Archivos de medios y reportes =====
+media/
+staticfiles/
+uploads/
+*.pdf
+*.xlsx
+*.mp3
+*.wav
+
+# ===== Configuración local =====
+*.VSCode/
+.idea/
+.vscode/
+.settings/
+
+# ===== Entornos específicos =====
+.env.dev
+.env.prod
+.env.local
+
+# ===== Archivos de sistema Windows =====
+desktop.ini
