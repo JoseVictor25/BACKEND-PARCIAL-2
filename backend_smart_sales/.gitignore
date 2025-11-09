@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-# Archivos locales de entorno
-.env
-cl
-=======
 # ===== Django / Python =====
 __pycache__/
 *.py[cod]
@@ -48,4 +43,3 @@ uploads/
 
 # ===== Archivos de sistema Windows =====
 desktop.ini
->>>>>>> main
