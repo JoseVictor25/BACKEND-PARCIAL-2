@@ -1,9 +1,6 @@
 from django.db import models
 
-<<<<<<< HEAD
-=======
 
->>>>>>> main
 class Producto(models.Model):
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField(blank=True, null=True)
@@ -21,9 +18,10 @@ class Producto(models.Model):
 
     def __str__(self):
         return self.nombre
-<<<<<<< HEAD
-=======
 
 
 
->>>>>>> main
+
+
+
+

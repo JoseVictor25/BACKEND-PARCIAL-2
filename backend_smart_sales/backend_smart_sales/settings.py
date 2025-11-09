@@ -3,28 +3,16 @@ from datetime import timedelta
 from decouple import config
 import os
 
-<<<<<<< HEAD
-# ==========================================
-# BASE DIR
-# ==========================================
-BASE_DIR = Path(__file__).resolve().parent.parent
-
 # ==========================================
 # SECRETOS Y CONFIGURACIÓN GENERAL
 # ==========================================
-=======
 BASE_DIR = Path(__file__).resolve().parent.parent
 
->>>>>>> main
 SECRET_KEY = config("SECRET_KEY")
 DEBUG = config("DEBUG", default=True, cast=bool)
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*").split(",")
 
-<<<<<<< HEAD
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="smartsales365@gmail.com")
-=======
-
->>>>>>> main
 
 # ==========================================
 # STRIPE
@@ -33,26 +21,17 @@ STRIPE_PUBLIC_KEY = config("STRIPE_PUBLIC_KEY", default="")
 STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY", default="")
 STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET", default="")
 
-
-<<<<<<< HEAD
-
-=======
->>>>>>> main
 # ==========================================
 # APLICACIONES
 # ==========================================
 INSTALLED_APPS = [
-<<<<<<< HEAD
     # Django
-=======
->>>>>>> main
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-<<<<<<< HEAD
 
     # Terceros
     "rest_framework",
@@ -64,45 +43,21 @@ INSTALLED_APPS = [
     "cloudinary_storage",
 
     # Apps propias
-=======
-    "rest_framework_simplejwt.token_blacklist",
-
-    # APPS PROPIAS
->>>>>>> main
     "users",
     "roles",
     "bitacora",
     "categoria",
     "marca",
     "producto",
-<<<<<<< HEAD
     "carrito",
     "venta",
+    "descuento",
+    "reporte",
 ]
 
 # ==========================================
 # MIDDLEWARE
 # ==========================================
-=======
-     "carrito",
-     "venta",
-     "descuento",
-     "reporte",
-     
-    # LIBRERÍAS
-    "rest_framework",
-    "rest_framework_simplejwt",
-    "corsheaders",
-    "drf_yasg",
-]
-
-
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",   # CRA
-    "http://localhost:5173",   # Vite
-]
-
->>>>>>> main
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -116,12 +71,9 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "backend_smart_sales.urls"
 
-<<<<<<< HEAD
 # ==========================================
 # TEMPLATES
 # ==========================================
-=======
->>>>>>> main
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -155,11 +107,7 @@ DATABASES = {
 }
 
 # ==========================================
-<<<<<<< HEAD
 # REST FRAMEWORK & JWT
-=======
-# AUTENTICACIÓN Y JWT
->>>>>>> main
 # ==========================================
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -168,7 +116,6 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
-<<<<<<< HEAD
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
         "rest_framework.filters.SearchFilter",
@@ -183,44 +130,30 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(
         days=config("REFRESH_TOKEN_LIFETIME_DAYS", default=1, cast=int)
     ),
-=======
-    'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend',
-        'rest_framework.filters.SearchFilter',
-        'rest_framework.filters.OrderingFilter',
-    ]
-}
-
-
-
-from datetime import timedelta
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=config("ACCESS_TOKEN_LIFETIME_MINUTES", default=60, cast=int)),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=config("REFRESH_TOKEN_LIFETIME_DAYS", default=1, cast=int)),
->>>>>>> main
     "AUTH_HEADER_TYPES": ("Bearer",),
     "BLACKLIST_AFTER_ROTATION": True,
     "ROTATE_REFRESH_TOKENS": True,
 }
 
-<<<<<<< HEAD
-=======
-DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="smartsales365@gmail.com")
-
-
-
->>>>>>> main
 # ==========================================
 # CORS
 # ==========================================
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",  # Django
+    "http://localhost:5173",  # Vite
+]
+
 # ==========================================
-# ARCHIVOS ESTÁTICOS
+# ARCHIVOS ESTÁTICOS Y MEDIA
 # ==========================================
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # ==========================================
 # INTERNACIONALIZACIÓN
@@ -231,25 +164,8 @@ USE_I18N = True
 USE_TZ = True
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-<<<<<<< HEAD
 
 # ==========================================
 # USUARIO PERSONALIZADO
 # ==========================================
 AUTH_USER_MODEL = "users.CustomUser"
-
-
-
-
-
-
-
-=======
-AUTH_USER_MODEL = "users.CustomUser"
-
-# ==========================================
-# ARCHIVOS MEDIA (para reportes)
-# ==========================================
-MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
->>>>>>> main

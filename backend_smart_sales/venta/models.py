@@ -8,10 +8,7 @@ class Venta(models.Model):
         ('pendiente', 'Pendiente'),
         ('pagado', 'Pagado'),
         ('cancelado', 'Cancelado'),
-<<<<<<< HEAD
         ('entregado', 'Entregado'),
-=======
->>>>>>> main
     ]
 
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
