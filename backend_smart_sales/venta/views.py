@@ -115,3 +115,110 @@ def registrar_venta(request):
         return Response({'error': 'Producto no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+
+# 📋 LISTAR TODAS LAS VENTAS
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def listar_ventas(request):
+    """
+    Lista todas las ventas registradas.
+    Si el usuario no es admin, solo ve sus propias ventas.
+    """
+    try:
+        usuario = request.user
+
+        # Si el usuario es admin, ve todas las ventas
+        if usuario.is_staff or usuario.is_superuser:
+            ventas = Venta.objects.all().order_by('-id')
+        else:
+            ventas = Venta.objects.filter(usuario=usuario).order_by('-id')
+
+        serializer = VentaSerializer(ventas, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# 🔍 OBTENER DETALLE DE UNA VENTA
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def obtener_venta(request, venta_id):
+    """
+    Devuelve los detalles de una venta específica.
+    """
+    try:
+        venta = Venta.objects.get(id=venta_id)
+
+        # Solo el usuario dueño o un admin puede verla
+        if not (request.user.is_staff or request.user.is_superuser or venta.usuario == request.user):
+            return Response({'error': 'No tiene permisos para ver esta venta.'},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        serializer = VentaSerializer(venta)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    except Venta.DoesNotExist:
+        return Response({'error': 'Venta no encontrada.'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+# ✏️ EDITAR (ACTUALIZAR) UNA VENTA
+@api_view(['PUT', 'PATCH'])
+@permission_classes([IsAuthenticated])
+@transaction.atomic
+def editar_venta(request, venta_id):
+    """
+    Permite modificar el estado o detalles de una venta.
+    Generalmente para actualizar estado (ej: entregado, cancelado, etc.)
+    """
+    try:
+        venta = Venta.objects.get(id=venta_id)
+
+        # ✅ Debug info: qué usuario hace la petición
+        print("🧑‍💼 Usuario autenticado:", request.user.email if hasattr(request.user, 'email') else request.user)
+        print("🧾 ID de la venta recibida:", venta_id)
+        print("📩 Datos recibidos en el request:", request.data)
+
+        # Solo admin o el creador puede editar
+        if not (request.user.is_staff or request.user.is_superuser or venta.usuario == request.user):
+            print("⛔ Permiso denegado al usuario:", request.user)
+            return Response({'error': 'No tiene permisos para editar esta venta.'},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        serializer = VentaSerializer(venta, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            print("✅ Datos validados correctamente. Campos válidos:", serializer.validated_data)
+            serializer.save()
+            print("💾 Venta actualizada exitosamente en BD.")
+
+            # Registrar en bitácora
+            Bitacora.objects.create(
+                usuario=request.user,
+                accion=f"Editó la venta #{venta.id}",
+                ip=get_client_ip(request),
+                estado=True,
+            )
+
+            return Response({
+                'mensaje': '✅ Venta actualizada correctamente.',
+                'venta': serializer.data
+            }, status=status.HTTP_200_OK)
+
+        else:
+            print("⚠️ Error de validación en serializer:", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    except Venta.DoesNotExist:
+        print("❌ Venta no encontrada con ID:", venta_id)
+        return Response({'error': 'Venta no encontrada.'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        print("💣 Error inesperado al editar venta:", str(e))
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

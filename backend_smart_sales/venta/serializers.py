@@ -10,11 +10,10 @@ class DetalleVentaSerializer(serializers.ModelSerializer):
         model = DetalleVenta
         fields = ['id', 'producto', 'producto_detalle', 'cantidad', 'precio_unitario', 'subtotal']
 
-
 class VentaSerializer(serializers.ModelSerializer):
     detalles = DetalleVentaSerializer(many=True, read_only=True)
 
     class Meta:
         model = Venta
         fields = ['id', 'usuario', 'fecha', 'total', 'estado', 'detalles']
-        read_only_fields = ['usuario', 'total', 'estado']
+        read_only_fields = ['usuario', 'total', 'fecha']
