@@ -21,6 +21,9 @@ STRIPE_PUBLIC_KEY = config("STRIPE_PUBLIC_KEY", default="")
 STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY", default="")
 STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET", default="")
 
+
+GEMINI_API_KEY = config("GEMINI_API_KEY", default=None)
+
 # ==========================================
 # APLICACIONES
 # ==========================================
@@ -41,6 +44,7 @@ INSTALLED_APPS = [
     "drf_yasg",
     "cloudinary",
     "cloudinary_storage",
+    'django_extensions',
 
     # Apps propias
     "users",
