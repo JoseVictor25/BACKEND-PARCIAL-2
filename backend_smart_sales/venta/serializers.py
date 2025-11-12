@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Venta, DetalleVenta
+from .models import Venta, DetalleVenta , Garantia
 from producto.serializers import ProductoSerializer
 
 
@@ -17,3 +17,11 @@ class VentaSerializer(serializers.ModelSerializer):
         model = Venta
         fields = ['id', 'usuario', 'fecha', 'total', 'estado', 'detalles']
         read_only_fields = ['usuario', 'total', 'fecha']
+
+
+
+
+class GarantiaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Garantia
+        fields = ['id', 'producto', 'venta', 'fecha_inicio', 'fecha_fin', 'estado']

@@ -20,5 +20,6 @@ class ProductoSerializer(serializers.ModelSerializer):
             "categoria_nombre",
             "imagen",
             "estado",
+            "garantia",
             "fecha_creacion",
         ]

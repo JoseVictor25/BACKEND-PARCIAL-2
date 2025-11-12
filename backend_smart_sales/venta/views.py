@@ -5,8 +5,10 @@ from rest_framework import viewsets, status
 from django.db import transaction
 from django.conf import settings
 import stripe
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
-from .models import Venta, DetalleVenta
+from .models import Venta, DetalleVenta , Garantia
 from .serializers import VentaSerializer
 from producto.models import Producto
 from users.models import CustomUser
@@ -16,7 +18,9 @@ from bitacora.models import Bitacora
 from rest_framework.decorators import action
 from datetime import timedelta
 from django.utils import timezone
+from dateutil.relativedelta import relativedelta  # Correcta importación de relativedelta
 
+from datetime import datetime
 
 
 # Configurar Stripe
@@ -54,6 +58,16 @@ def crear_pago(request):
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+
+
+
+
+
+
+
+
+
+
 # 🧾 REGISTRAR VENTA (después de pago exitoso)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -63,7 +77,7 @@ def registrar_venta(request):
     Registra una venta y sus detalles, actualizando inventario.
     Se llama después de confirmar el pago exitoso.
     """
-    print("📦 Datos recibidos:", request.data)
+    print("📦 Datos recibidos: - views.py:80", request.data)
 
     try:
         usuario = request.user
@@ -73,9 +87,6 @@ def registrar_venta(request):
 
         if not productos or not total:
             return Response({'error': 'Debe enviar productos y total.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Buscar el cliente relacionado al usuario
-        cliente = usuario
 
         # Crear la venta
         venta = Venta.objects.create(usuario=usuario, total=total, estado="pagado")
@@ -97,6 +108,32 @@ def registrar_venta(request):
                 precio_unitario=producto.precio,
                 subtotal=subtotal,
             )
+
+            # Establecer la fecha de inicio como la fecha de la venta
+            fecha_inicio = datetime.today().date()
+            print(f"📅 Fecha de inicio: {fecha_inicio} - views.py:114")  # Verifica la fecha de inicio
+
+            # Verifica el valor de producto.garantia
+            if hasattr(producto, 'garantia'):
+                print(f"🔑 Duración de la garantía en meses: {producto.garantia} - views.py:118")
+            else:
+                print("❌ El producto no tiene un campo 'garantia' definido correctamente. - views.py:120")
+
+            try:
+                # Crear la garantía
+                garantia = Garantia.objects.create(
+                    producto=producto,
+                    venta=venta,
+                    fecha_inicio=fecha_inicio,  # Establece la fecha de inicio como la fecha de la venta
+                    fecha_fin=fecha_inicio + relativedelta(months=producto.garantia),  # Sumar la duración de la garantía
+                    estado='activa',  # Estado inicial de la garantía
+                )
+
+                # Verifica si la garantía se creó correctamente
+                print(f"✅ Garantía creada: Producto: {producto.nombre}, Fecha de inicio: {garantia.fecha_inicio}, Fecha de fin: {garantia.fecha_fin}, Estado: {garantia.estado} - views.py:133")
+
+            except Exception as e:
+                print(f"❌ Error al crear la garantía: {str(e)} - views.py:136")
 
             # Actualizar inventario
             producto.stock -= cantidad
@@ -121,8 +158,6 @@ def registrar_venta(request):
         return Response({'error': 'Producto no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
 
 
 
@@ -188,22 +223,22 @@ def editar_venta(request, venta_id):
         venta = Venta.objects.get(id=venta_id)
 
         # ✅ Debug info: qué usuario hace la petición
-        print("🧑‍💼 Usuario autenticado:", request.user.email if hasattr(request.user, 'email') else request.user)
-        print("🧾 ID de la venta recibida:", venta_id)
-        print("📩 Datos recibidos en el request:", request.data)
+        print("🧑‍💼 Usuario autenticado: - views.py:226", request.user.email if hasattr(request.user, 'email') else request.user)
+        print("🧾 ID de la venta recibida: - views.py:227", venta_id)
+        print("📩 Datos recibidos en el request: - views.py:228", request.data)
 
         # Solo admin o el creador puede editar
         if not (request.user.is_staff or request.user.is_superuser or venta.usuario == request.user):
-            print("⛔ Permiso denegado al usuario:", request.user)
+            print("⛔ Permiso denegado al usuario: - views.py:232", request.user)
             return Response({'error': 'No tiene permisos para editar esta venta.'},
                             status=status.HTTP_403_FORBIDDEN)
 
         serializer = VentaSerializer(venta, data=request.data, partial=True)
 
         if serializer.is_valid():
-            print("✅ Datos validados correctamente. Campos válidos:", serializer.validated_data)
+            print("✅ Datos validados correctamente. Campos válidos: - views.py:239", serializer.validated_data)
             serializer.save()
-            print("💾 Venta actualizada exitosamente en BD.")
+            print("💾 Venta actualizada exitosamente en BD. - views.py:241")
 
             # Registrar en bitácora
             Bitacora.objects.create(
@@ -219,12 +254,17 @@ def editar_venta(request, venta_id):
             }, status=status.HTTP_200_OK)
 
         else:
-            print("⚠️ Error de validación en serializer:", serializer.errors)
+            print("⚠️ Error de validación en serializer: - views.py:257", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     except Venta.DoesNotExist:
-        print("❌ Venta no encontrada con ID:", venta_id)
+        print("❌ Venta no encontrada con ID: - views.py:261", venta_id)
         return Response({'error': 'Venta no encontrada.'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
-        print("💣 Error inesperado al editar venta:", str(e))
+        print("💣 Error inesperado al editar venta: - views.py:264", str(e))
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+

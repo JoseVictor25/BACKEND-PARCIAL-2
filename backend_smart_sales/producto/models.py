@@ -6,6 +6,7 @@ class Producto(models.Model):
     descripcion = models.TextField(blank=True, null=True)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.PositiveIntegerField(default=0)
+    garantia= models.IntegerField(default=1)  # Duración de la garantía en días (por ejemplo, 365 para 1 año)
     marca = models.ForeignKey(
         "marca.Marca", on_delete=models.CASCADE, related_name="productos"
     )
@@ -18,7 +19,6 @@ class Producto(models.Model):
 
     def __str__(self):
         return self.nombre
-
 
 
 

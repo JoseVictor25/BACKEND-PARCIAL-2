@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "venta",
     "descuento",
     "reporte",
+    "mantenimiento"
 ]
 
 # ==========================================
