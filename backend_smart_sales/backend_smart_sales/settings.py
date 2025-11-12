@@ -4,38 +4,41 @@ from decouple import config
 import os
 
 # ==========================================
-# SECRETOS Y CONFIGURACIÓN GENERAL
+# BASE Y CLAVE SECRETA
 # ==========================================
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config("SECRET_KEY")
-DEBUG = config("DEBUG", default=True, cast=bool)
-ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*").split(",")
+DEBUG = config("DEBUG", default=False, cast=bool)
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="tu-dominio.com,www.tu-dominio.com").split(",")
 
+# ==========================================
+# EMAIL (por ejemplo para recuperación de contraseña)
+# ==========================================
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="smartsales365@gmail.com")
 
 # ==========================================
-# STRIPE
+# STRIPE (ejemplo, puedes quitar si no usas)
 # ==========================================
 STRIPE_PUBLIC_KEY = config("STRIPE_PUBLIC_KEY", default="")
 STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY", default="")
 STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET", default="")
 
-
+# ==========================================
+# GEMINI API
+# ==========================================
 GEMINI_API_KEY = config("GEMINI_API_KEY", default=None)
 
 # ==========================================
 # APLICACIONES
 # ==========================================
 INSTALLED_APPS = [
-    # Django
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
     # Terceros
     "rest_framework",
     "rest_framework_simplejwt",
@@ -44,8 +47,7 @@ INSTALLED_APPS = [
     "drf_yasg",
     "cloudinary",
     "cloudinary_storage",
-    'django_extensions',
-
+    "django_extensions",
     # Apps propias
     "users",
     "roles",
@@ -98,7 +100,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "backend_smart_sales.wsgi.application"
 
 # ==========================================
-# BASE DE DATOS PostgreSQL
+# BASE DE DATOS (Railway / Render / Supabase)
 # ==========================================
 DATABASES = {
     "default": {
@@ -112,7 +114,7 @@ DATABASES = {
 }
 
 # ==========================================
-# REST FRAMEWORK & JWT
+# REST FRAMEWORK Y JWT
 # ==========================================
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -121,34 +123,23 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
-    "DEFAULT_FILTER_BACKENDS": [
-        "django_filters.rest_framework.DjangoFilterBackend",
-        "rest_framework.filters.SearchFilter",
-        "rest_framework.filters.OrderingFilter",
-    ],
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(
-        minutes=config("ACCESS_TOKEN_LIFETIME_MINUTES", default=60, cast=int)
-    ),
-    "REFRESH_TOKEN_LIFETIME": timedelta(
-        days=config("REFRESH_TOKEN_LIFETIME_DAYS", default=1, cast=int)
-    ),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=config("ACCESS_TOKEN_LIFETIME_MINUTES", default=60, cast=int)),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=config("REFRESH_TOKEN_LIFETIME_DAYS", default=1, cast=int)),
     "AUTH_HEADER_TYPES": ("Bearer",),
     "BLACKLIST_AFTER_ROTATION": True,
     "ROTATE_REFRESH_TOKENS": True,
 }
 
 # ==========================================
-# CORS
+# CORS (para React en producción)
 # ==========================================
-CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
-
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",  # Django
-    "http://localhost:5173",  # Vite
+    "https://tu-frontend.vercel.app",
+    "https://www.tu-frontend.com",
 ]
 
 # ==========================================
@@ -159,6 +150,16 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+# Cloudinary (almacenamiento de imágenes)
+DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+
+# ==========================================
+# SEGURIDAD (producción)
+# ==========================================
+SECURE_SSL_REDIRECT = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
 
 # ==========================================
 # INTERNACIONALIZACIÓN
